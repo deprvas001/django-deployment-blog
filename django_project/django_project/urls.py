@@ -23,6 +23,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('api-auth/', include('rest_framework.urls')),
     path('register/', user_views.register, name='register'),
     path('profile/', user_views.profile, name='profile'),
     path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
@@ -39,6 +40,7 @@ urlpatterns = [
             name='password_reset_confirm'),        
 
     path("blog/", include('blog.urls')),
+  
 ]
 
 if settings.DEBUG:

@@ -1,9 +1,20 @@
-from django.urls import path
+from django.urls import path,include
 from . import views
-from .views import PostListView, PostDetailView, PostCreateView,PostUpdateView,PostDeleteView, UserPostListView
+from .views import (
+    PostListView, 
+    PostDetailView,
+    PostCreateView,
+    PostUpdateView,
+    PostDeleteView, 
+    UserPostListView,
+    BlogListApiView,
+    PostDetailApiView,
+)
 
 urlpatterns = [
     # path("", views.home, name="blog-home"),
+    path('api',BlogListApiView.as_view()),
+    path('api/<int:id>/', PostDetailApiView.as_view()),
     path('', PostListView.as_view(), name="blog-home"),
     path('user/<str:username>', UserPostListView.as_view(), name="user-posts"),
     path('post/<int:pk>/', PostDetailView.as_view(),name="post-detail"),
