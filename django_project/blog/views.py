@@ -5,6 +5,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView,DetailView,CreateView,UpdateView, DeleteView     
 
+from rest_framework import status
+from rest_framework import permissions
+from .models import Post
+from .serializers import PostSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 # Create your views here.
 
 posts = [
@@ -92,3 +99,71 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 def about(request):
     return render(request, 'blog/about.html',{'title': 'About'})
+
+class BlogListApiView(APIView):
+    # add permission to check if user is authenticated
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    # 1. List All
+    def get(self, request, *args, **kwars):
+        '''
+        List all the blog items for give requested user
+        '''
+
+       # post = Post.objects.filter(author = request.user.id)
+        post = Post.objects.all()
+        serializer = PostSerializer(post, many=True)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+
+    # 2. Create
+    def post(self,request, *args, **kwargs):
+        '''
+        Create the post with given post data
+        '''
+
+        data = {
+              'title':request.data('title'),
+              'content':request.data('content'),
+            
+        }
+
+        serializer = PostSerializer(data = data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+
+
+class PostDetailApiView(APIView):
+    # add permission to check if user is authenticated
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, id):
+        '''
+        Helper method to get the object with given post_id and user_id
+        '''
+
+        try:
+            return Post.objects.get(id=id)
+        except Post.DoesNotExist:
+            return None
+
+     # 3. Retrieve 
+    def get(self,request, id, *args, **kwargs):
+        '''
+        Retrieve the Post with given Post_id
+        '''
+
+        post_instance = self.get_object(id)
+        if not post_instance:
+            return Response(
+                {"res":"Object not found"},
+                status = status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = PostSerializer(post_instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
